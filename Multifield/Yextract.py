@@ -3,6 +3,7 @@ from tqdm import tqdm
 from matplotlib.animation import FuncAnimation
 import matplotlib.animation
 import numpy as np
+import os
 
 FFMpegWriter = matplotlib.animation.writers['ffmpeg']
 metadata = dict(title='trial_pleasework', artist='Agam',
@@ -16,14 +17,6 @@ properties = {
 }
 
 #########################################################################
-file = open("./ExtractedCompleteData/multifield.0030.txt","r")
-prop_name = "density"
-
-selected_property = []
-for lines in tqdm(range(0, 600*248*248)):
-    d = file.readline()
-    props = d.split(" ")
-    selected_property.append(float(props[properties[prop_name]["pos"]]))
 
 X = []
 Z = []
@@ -32,17 +25,26 @@ for i in tqdm(range(0,248)):
         X.append(j)
         Z.append(i)
 
-slices = [80, 100, 110, 115, 120, 124, 125, 130, 150]
+slicenum = 125
+prop_name = "temp"
+min = 10e9
+max = -1
 
-def update(slicenum):
+def update(file):
+    openfile = open("./ExtractedCompleteData/" + file,"r")
+    timestep = file.split(".")[1]
+    selected_property = []
+    for lines in tqdm(range(0, 600*248*248)):
+        d = openfile.readline()
+        props = d.split(" ")
+        selected_property.append(float(props[properties[prop_name]["pos"]]))
+
     indices = []
     for i in range(0,248):
         for j in range(0,600):
-            indices.append(600*248*i + 600*slices[slicenum] + j)
+            indices.append(600*248*i + 600*slicenum + j)
     
     planeslice = []
-    min = 10e9
-    max = -1
     for i in tqdm(indices):
         planeslice.append(selected_property[i])
         if(selected_property[i] > max): 
@@ -51,10 +53,37 @@ def update(slicenum):
             min = selected_property[i]
 
     plt.scatter(X,Z, c=planeslice, cmap=properties[prop_name]["cmap"])
-    plt.title("0030 XZ "+str(slices[slicenum]) +" "+prop_name)
+    plt.title(timestep + " XZ " + str(slicenum) +" "+prop_name)
 
-fig = plt.figure("0030 XZ "+ prop_name)
-with writer.saving(fig, "trial.mp4", dpi=100):
-    for slicenum in range(len(slices)):
-        update(slicenum)
+fig = plt.figure("XZ "+str(slicenum) + " "+ prop_name, figsize=(30,30))
+with writer.saving(fig, "XZ.slice"+str(slicenum)+"."+prop_name+".mp4", dpi=100):
+    for file in sorted(os.listdir("./ExtractedCompleteData")):
+        # update(file)
+        print("Reading "+ file)
+        openfile = open("./ExtractedCompleteData/" + file,"r")
+        timestep = file.split(".")[1]
+        selected_property = []
+        for lines in tqdm(range(0, 600*248*248)):
+            d = openfile.readline()
+            props = d.split(" ")
+            selected_property.append(float(props[properties[prop_name]["pos"]]))
+
+        indices = []
+        for i in range(0,248):
+            for j in range(0,600):
+                indices.append(600*248*i + 600*slicenum + j)
+        
+        planeslice = []
+        for i in tqdm(indices):
+            planeslice.append(selected_property[i])
+            if(selected_property[i] > max): 
+                max=selected_property[i]
+            if(selected_property[i] < min):
+                min = selected_property[i]
+
+        plt.scatter(X,Z, c=planeslice, cmap=properties[prop_name]["cmap"])
+        plt.title(timestep + " XZ " + str(slicenum) +" "+prop_name, fontsize=30)
         writer.grab_frame()
+        print(timestep + " complete!")
+
+print(min, max)
