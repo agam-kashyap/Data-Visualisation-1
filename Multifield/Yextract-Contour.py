@@ -48,7 +48,7 @@ for slicenum in slice:
 
     plt.figure("0030 XZ "+str(slicenum) +" "+ prop_name)
     # plt.scatter(X,Z, c=planeslice, cmap='hot')
-    plt.contourf(Z,X, data, cmap='hot')
+    plt.contourf(Z,X, data, levels=[50, 2000], cmap='hot')
     plt.title("0030 XZ "+str(slicenum) +" "+prop_name)
     plt.show()
     # plt.savefig("0030 XZ "+str(slicenum) +" "+prop_name+".png")
