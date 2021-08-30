@@ -1,5 +1,6 @@
 import random
 import math
+from matplotlib import scale
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,7 +16,7 @@ writer = FFMpegWriter(fps=2, metadata=metadata)
 slicenum = 125
 
 # fig = plt.figure("Velocity XZ "+str(slicenum), figsize=(30,30))
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(30,30))
 with writer.saving(fig, "Velocity.XZ.slice"+str(slicenum)+".mp4", dpi=100):
     for file in sorted(os.listdir("./ExtractedCompleteData")):
         f = open("./ExtractedCompleteData/"+file)
@@ -74,37 +75,45 @@ with writer.saving(fig, "Velocity.XZ.slice"+str(slicenum)+".mp4", dpi=100):
         max_c_yz = -1
         min_c_yz = 10e9
 
+        limiter = 0
         for i in tqdm(range(599)):
             for j in range(247):
-                vy_i1jk = req_data[X*Y*j + X*(slicenum+1) + i]["Y"]
-                vy_ijk  = req_data[X*Y*j + X*slicenum + i]["Y"]
-                vx_ij1k = req_data[X*Y*(j+1) + X*slicenum + i]["X"]
-                vx_ijk  = req_data[X*Y*j + X*slicenum + i]["X"]
+                if(limiter%100 == 0):
+                    vy_i1jk = req_data[X*Y*j + X*(slicenum+1) + i]["Y"]
+                    vy_ijk  = req_data[X*Y*j + X*slicenum + i]["Y"]
+                    vx_ij1k = req_data[X*Y*(j+1) + X*slicenum + i]["X"]
+                    vx_ijk  = req_data[X*Y*j + X*slicenum + i]["X"]
 
-                vz_ij1k = req_data[X*Y*j + X*(slicenum+1) + i]["Z"]
-                vz_ijk  = req_data[X*Y*j + X*slicenum + i]["Z"]
-                vy_ijk1 = req_data[X*Y*(j+1) + X*slicenum + i]["Y"]
+                    vz_ij1k = req_data[X*Y*j + X*(slicenum+1) + i]["Z"]
+                    vz_ijk  = req_data[X*Y*j + X*slicenum + i]["Z"]
+                    vy_ijk1 = req_data[X*Y*(j+1) + X*slicenum + i]["Y"]
 
-                X_pos.append(i)
-                Z_pos.append(j)
+                    X_pos.append(i)
+                    Z_pos.append(j)
+                    
+                    calc_curl_xy = (vy_i1jk - vy_ijk - vx_ij1k + vx_ijk)/0.001
+                    calc_curl_yz = (vz_ij1k - vz_ijk - vy_ijk1 + vy_ijk)/0.001
+                    curl_xy.append(calc_curl_xy)
+                    curl_yz.append(calc_curl_yz)
+
+                    if(calc_curl_xy < min_c_xy): min_c_xy = calc_curl_xy
+                    if(calc_curl_xy > max_c_xy): max_c_xy = calc_curl_xy
+                    if(calc_curl_yz < min_c_yz): min_c_yz = calc_curl_yz
+                    if(calc_curl_yz > max_c_yz): max_c_yz = calc_curl_yz
+
+                    colorval.append(datatemp[X*Y*j + X*slicenum + i])
                 
-                calc_curl_xy = (vy_i1jk - vy_ijk - vx_ij1k + vx_ijk)/0.001
-                calc_curl_yz = (vz_ij1k - vz_ijk - vy_ijk1 + vy_ijk)/0.001
-                curl_xy.append(calc_curl_xy)
-                curl_yz.append(calc_curl_yz)
+                limiter+=1
 
-                if(calc_curl_xy < min_c_xy): min_c_xy = calc_curl_xy
-                if(calc_curl_xy > max_c_xy): max_c_xy = calc_curl_xy
-                if(calc_curl_yz < min_c_yz): min_c_yz = calc_curl_yz
-                if(calc_curl_yz > max_c_yz): max_c_yz = calc_curl_yz
-
-                colorval.append(datatemp[X*Y*j + X*slicenum + i])
-
-        for i in range(599*247):
+        for i in range(len(curl_xy)):
             curl_xy[i] = math.tanh(curl_xy[i])
             curl_yz[i] = math.tanh(curl_yz[i])
 
-        ax.set_title("Velocity XZ "+timestep+ " slice125", fontsize=30)
-        ax.quiver(X_pos, Z_pos, curl_yz, curl_xy, colorval, cmap='hot')
+        ax.set_title("Velocity XZ "+timestep+ " slice125", fontsize=15)
+        ax.quiver(X_pos, Z_pos, curl_yz, curl_xy, colorval, cmap='hot', scale=50)
+        # ax.quiver(X_pos, Z_pos, curl_yz, curl_xy, scale=50)
         writer.grab_frame()
+        # plt.show()
         print(timestep + " complete!")
+
+        
