@@ -43,8 +43,9 @@ for i in tqdm(range(0,248)):
         data_1[j][i] = planeslice_1[600*i + j]
         # data_2[j][i] = planeslice_2[599*i + j]
 
-plt.figure("0030 XZ "+str(slicenum) +" "+ prop_name_1 + " " + prop_name_2)
-plt.scatter(Z_pos,X_pos, c=planeslice_2, cmap='Blues_r')
-plt.contour(Z,X, data_1, levels=[500, 2000, 4000, 20000, 30000] , cmap='hot')
+fig = plt.figure("0030 XZ "+str(slicenum) +" "+ prop_name_1 + " " + prop_name_2)
+f = plt.scatter(Z_pos,X_pos, c=planeslice_2, cmap='Blues_r', vmin=20, vmax=18020)
+fig.colorbar(f)
+# plt.contour(Z,X, data_1, levels=[500, 2000, 4000, 20000, 30000] , cmap='hot')
 plt.show()
     # plt.savefig("0030 XZ "+str(slicenum) +" "+prop_name+".png")

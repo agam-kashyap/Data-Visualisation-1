@@ -3,64 +3,73 @@ from tqdm import tqdm
 import matplotlib.animation
 import os
 import multiprocessing as mp
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
-def YsliceExtractor(prop_name, slicenum):
-    FFMpegWriter = matplotlib.animation.writers['ffmpeg']
-    metadata = dict(title='trial_pleasework', artist='Agam',
-                    comment='FuckYouPython')
-    writer = FFMpegWriter(fps=2, metadata=metadata)
-
-    properties = {
-        "density" : {"cmap": 'Blues_r', "pos": 0},
-        "temp" : {"cmap": 'hot', "pos": 1},
-        "ab_H2" : {"cmap": 'cividis', "pos": 8}
+properties = {
+        "density" : {"cmap": 'Blues_r', "pos": 0, "vmin": 20, "vmax": 18020},
+        "temp" : {"cmap": 'hot', "pos": 1, "vmin": 72.16, "vmax": 30350},
+        "ab_H2" : {"cmap": 'cividis', "pos": 8, "vmin": 1.76e-14, "vmax": 6.911e-05}
     }
 
-    #########################################################################
+X = []
+Z = []
+for i in tqdm(range(0,248)):
+    for j in range(0,600):
+        X.append(j)
+        Z.append(i)
 
-    X = []
-    Z = []
-    for i in tqdm(range(0,248)):
+def graph_creator(args):
+    file = args[0]
+    slicenum = args[1]
+    prop_name = args[2]
+    print("Reading "+ file)
+    openfile = open("./ExtractedCompleteData/" + file,"r")
+    timestep = file.split(".")[1]
+    selected_property = []
+    for lines in tqdm(range(0, 600*248*248)):
+        d = openfile.readline()
+        props = d.split(" ")
+        selected_property.append(float(props[properties[prop_name]["pos"]]))
+
+    indices = []
+    for i in range(0,248):
         for j in range(0,600):
-            X.append(j)
-            Z.append(i)
+            indices.append(600*248*i + 600*slicenum + j)
+    
+    planeslice = []
+    for i in tqdm(indices):
+        planeslice.append(selected_property[i])
+        if(selected_property[i] > max): 
+            max=selected_property[i]
+        if(selected_property[i] < min):
+            min = selected_property[i]
 
-    min = 10e9
-    max = -1
+    fig, (ax, cax) = plt.subplots(nrows=2, figsize=(60,40), gridspec_kw={"height_ratios":[1, 0.05]})
+    f=ax.scatter(X,Z, c=planeslice, cmap=properties[prop_name]["cmap"], vmin=properties[prop_name]["vmin"], vmax=properties[prop_name]["vmax"])
+    cb = fig.colorbar(f, cax=cax, orientation="horizontal")
+    ax.set_title(timestep + " XZ " + str(slicenum) +" "+prop_name, fontsize=30)
+    ax.set_xlabel('X position($10^{-3}$ parsecs)', fontsize=20)
+    ax.set_ylabel('Z position($10^{-3}$ parsecs)', fontsize=20)
+    ax.tick_params(axis='both', which='major', labelsize=20)
+    ax.tick_params(axis='both', which='minor', labelsize=15)     
+    # plt.show()
+    plt.save("../Images/Final/"+ prop_name + "/XZ.slice"+str(slicenum)+"."+prop_name+"." + timestep+ ".png")
+    # writer.grab_frame()
+    # cb.remove()
+    print(timestep + " complete!")
 
-    fig = plt.figure("XZ "+str(slicenum) + " "+ prop_name, figsize=(30,30))
-    with writer.saving(fig, "XZ.slice"+str(slicenum)+"."+prop_name+".mp4", dpi=100):
-        for file in sorted(os.listdir("./ExtractedCompleteData")):
-            # update(file)
-            print("Reading "+ file)
-            openfile = open("./ExtractedCompleteData/" + file,"r")
-            timestep = file.split(".")[1]
-            selected_property = []
-            for lines in tqdm(range(0, 600*248*248)):
-                d = openfile.readline()
-                props = d.split(" ")
-                selected_property.append(float(props[properties[prop_name]["pos"]]))
+    
+def YsliceExtractor(prop_name, slicenum):   
+    arguments = []
+    for file in sorted(os.listdir("./ExtractedCompleteData")):
+        temp_list = []
+        temp_list.append(file)
+        temp_list.append(slicenum)
+        temp_list.append(prop_name)
+        arguments.append(temp_list)
 
-            indices = []
-            for i in range(0,248):
-                for j in range(0,600):
-                    indices.append(600*248*i + 600*slicenum + j)
-            
-            planeslice = []
-            for i in tqdm(indices):
-                planeslice.append(selected_property[i])
-                if(selected_property[i] > max): 
-                    max=selected_property[i]
-                if(selected_property[i] < min):
-                    min = selected_property[i]
+    pool = mp.Pool(mp.cpu_count())
+    pool.map(graph_creator, arguments)
+    pool.close()
 
-            plt.scatter(X,Z, c=planeslice, cmap=properties[prop_name]["cmap"])
-            plt.title(timestep + " XZ " + str(slicenum) +" "+prop_name, fontsize=30)
-            writer.grab_frame()
-            print(timestep + " complete!")
-
-    print(min, max)
-
-pool = mp.Pool(mp.cpu_count())
-pool.apply(YsliceExtractor, args=("ab_H2", 125))
-pool.close()
+YsliceExtractor("density", 125)
