@@ -39,21 +39,19 @@ def graph_creator(args):
     planeslice = []
     for i in tqdm(indices):
         planeslice.append(selected_property[i])
-        if(selected_property[i] > max): 
-            max=selected_property[i]
-        if(selected_property[i] < min):
-            min = selected_property[i]
 
-    fig, (ax, cax) = plt.subplots(nrows=2, figsize=(60,40), gridspec_kw={"height_ratios":[1, 0.05]})
+    fig, (ax, cax) = plt.subplots(nrows=2, figsize=(10,8), gridspec_kw={"height_ratios":[1, 0.05]})
+    # fig, ax = plt.subplots(nrows=1, figsize=(60,40))
     f=ax.scatter(X,Z, c=planeslice, cmap=properties[prop_name]["cmap"], vmin=properties[prop_name]["vmin"], vmax=properties[prop_name]["vmax"])
     cb = fig.colorbar(f, cax=cax, orientation="horizontal")
-    ax.set_title(timestep + " XZ " + str(slicenum) +" "+prop_name, fontsize=30)
-    ax.set_xlabel('X position($10^{-3}$ parsecs)', fontsize=20)
-    ax.set_ylabel('Z position($10^{-3}$ parsecs)', fontsize=20)
-    ax.tick_params(axis='both', which='major', labelsize=20)
-    ax.tick_params(axis='both', which='minor', labelsize=15)     
-    # plt.show()
-    plt.save("../Images/Final/"+ prop_name + "/XZ.slice"+str(slicenum)+"."+prop_name+"." + timestep+ ".png")
+    ax.set_title(timestep + " XZ " + str(slicenum) +" "+prop_name, fontsize=15)
+    ax.set_xlabel('X position($10^{-3}$ parsecs)', fontsize=10)
+    ax.set_ylabel('Z position($10^{-3}$ parsecs)', fontsize=10)
+    ax.tick_params(axis='both', which='major', labelsize=10)
+    ax.tick_params(axis='both', which='minor', labelsize=10)
+    fig.canvas.draw()  
+    fig.savefig("./Images/Final/"+ prop_name + "/XZ.slice"+str(slicenum)+"."+prop_name+"." + timestep+ ".png", dpi=300)
+    
     # writer.grab_frame()
     # cb.remove()
     print(timestep + " complete!")
@@ -68,8 +66,11 @@ def YsliceExtractor(prop_name, slicenum):
         temp_list.append(prop_name)
         arguments.append(temp_list)
 
-    pool = mp.Pool(mp.cpu_count())
-    pool.map(graph_creator, arguments)
-    pool.close()
+    for args in arguments:
+        graph_creator(args)
+    print(prop_name+ " completed!!!!!!!!!")
+    # pool = mp.Pool(mp.cpu_count())
+    # pool.map(graph_creator, arguments)
+    # pool.close()
 
-YsliceExtractor("density", 125)
+YsliceExtractor("ab_H2", 125)
