@@ -14,3 +14,11 @@
 - Minimum: 1.76e-14 units
 - Maximum: 6.911e-05 units
 - Selected color map: Blues_r
+
+### H^- mass abundance
+- Minimum: 1e-99 units
+- Maximum:1.629e-07 units
+        
+### H2+ mass abundance
+- Minimum: 1e-99 units
+- Maximum: 1.691e-08 units
