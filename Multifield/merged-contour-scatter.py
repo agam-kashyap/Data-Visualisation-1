@@ -59,7 +59,7 @@ def graph_creator(args):
     
     fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10,8), gridspec_kw={"height_ratios":[1, 0.05], "width_ratios":[1, 0.05]})
     fs = axs[0,0].scatter(Z_pos, X_pos, c=planeslice_2, cmap=properties[prop_name_2]["cmap"], vmin=properties[prop_name_2]["vmin"], vmax=properties[prop_name_2]["vmax"])
-    fc = axs[0,0].contour(Z, X, data_1, levels=[0, 500, 2000, 4000, 20000, 30000], cmap=properties[prop_name_1]["cmap"])
+    fc = axs[0,0].contour(Z, X, data_1, levels=[0, 70, 500, 2000, 4000, 20000, 30000], cmap=properties[prop_name_1]["cmap"])
     axs[0,0].set_title(str(timestep) + " XZ " + str(slicenum) +" Temp Contour + Density Colormap", fontsize=15)
     axs[0,0].set_xlabel('Z position($10^{-3}$ parsecs)', fontsize=10)
     axs[0,0].set_ylabel('X position($10^{-3}$ parsecs)', fontsize=10)
