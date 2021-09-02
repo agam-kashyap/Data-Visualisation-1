@@ -1,15 +1,16 @@
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-import matplotlib.animation
 import os
-import multiprocessing as mp
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 properties = {
         "density" : {"cmap": 'Blues_r', "pos": 0, "vmin": 20, "vmax": 18020},
         "temp" : {"cmap": 'hot', "pos": 1, "vmin": 72.16, "vmax": 30350},
-        "ab_H2" : {"cmap": 'cividis', "pos": 8, "vmin": 1.76e-14, "vmax": 6.911e-05}
+        "ab_H2" : {"cmap": 'bone', "pos": 8, "vmin": 1.76e-14, "vmax": 6.911e-05},
+        "ab_H-": {"cmap": 'pink', "pos": 7, "vmin": 1e-99, "vmax":1.629e-07},
+        "ab_H2+": {"cmap": 'copper', "pos": 9, "vmin": 1e-99, "vmax": 1.691e-08}
     }
+
 
 X = []
 Z = []

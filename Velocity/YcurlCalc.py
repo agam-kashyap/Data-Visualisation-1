@@ -1,14 +1,9 @@
 import math
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
-import matplotlib.animation
 import os
 from tqdm import tqdm
 
-FFMpegWriter = matplotlib.animation.writers['ffmpeg']
-metadata = dict(title='Velocity Change', artist='Agam',
-                comment='This is NSFW')
-writer = FFMpegWriter(fps=2, metadata=metadata)
 
 properties = {
         "density" : {"cmap": 'Blues_r', "pos": 0, "vmin": 20, "vmax": 18020},
